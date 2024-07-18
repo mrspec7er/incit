@@ -14,14 +14,15 @@ datasource db {
 }
 
 model User {
-  id              Int      @id @default(autoincrement())
-  email           String   @unique
-  password        String?
-  authProvider    String
-  verifiedEmail   Boolean @default(false)
-  signUpTime      DateTime @default(now())
-  lastLogoutTime  DateTime?
-  loginCount      Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  email             String   @unique
+  password          String?
+  authProvider      String
+  verificationToken String?
+  verifiedEmail     Boolean @default(false)
+  signUpTime        DateTime @default(now())
+  lastLogoutTime    DateTime?
+  loginCount        Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

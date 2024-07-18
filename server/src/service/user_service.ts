@@ -5,6 +5,9 @@ import {
   AuthorizationCode,
 } from "simple-oauth2";
 import { UserInfo } from "../dto/user_dto";
+import bcrypt from "bcryptjs";
+import * as mailService from "./mail_service";
+import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
@@ -36,7 +39,7 @@ export async function getAllUsers() {
   return users;
 }
 
-export async function authCallback(code: string, provider: string) {
+export async function oauthCallback(code: string, provider: string) {
   const options = {
     code,
     redirect_uri: `http://localhost:8080/users/callback?provider=${provider}`,
@@ -67,7 +70,58 @@ export async function authCallback(code: string, provider: string) {
     },
   });
 
-  console.log("PROVIDER: ", provider);
+  return user;
+}
+
+export const registerUser = async (email: string, password: string) => {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const verificationToken = generateToken();
+  const user = await prisma.user.create({
+    data: {
+      authProvider: "Email",
+      email: email,
+      password: hashedPassword,
+      verificationToken: verificationToken,
+    },
+  });
+
+  mailService.sendVerificationEmail(email, verificationToken);
 
   return user;
+};
+
+export const verifyUser = async (token: string) => {
+  let user = await prisma.user.findFirst({
+    where: {
+      verificationToken: token,
+    },
+  });
+  if (user) {
+    user = await prisma.user.update({
+      where: {
+        email: user.email,
+      },
+      data: {
+        verifiedEmail: true,
+      },
+    });
+  }
+
+  return user;
+};
+
+export const generateToken = () => {
+  return crypto.randomBytes(32).toString("hex");
+};
+
+export function validatePassword(password: string): boolean {
+  const hasLowercase = /[a-z]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const hasMinLength = password.length >= 8;
+
+  return (
+    hasLowercase && hasUppercase && hasDigit && hasSpecialChar && hasMinLength
+  );
 }
