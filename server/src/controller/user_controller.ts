@@ -41,8 +41,13 @@ export const oauthCallback = async (req: Request, res: Response) => {
     const code = req.query.code as string;
     const { provider } = req.query;
     const userData = await service.oauthCallback(code, provider as string);
+    res.cookie("userCredentials", {
+      email: userData.user.email,
+      provider: "Email",
+      token: userData.token,
+    });
 
-    res.status(200).json(userData);
+    res.status(200).json(userData.user);
   } catch (err) {
     res.status(500).json({ error: err });
   }
@@ -78,8 +83,27 @@ export const verifyUsers = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    const users = await service.loginUser(email, password);
-    res.status(200).json(users);
+    const userData = await service.loginUser(email, password);
+
+    res.cookie("userCredentials", {
+      email: userData.user.email,
+      provider: "Email",
+      token: userData.token,
+    });
+
+    res.status(200).json(userData);
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    await service.logoutUser(email);
+    res.clearCookie("userCredentials");
+
+    res.redirect("/");
   } catch (err) {
     res.status(500).json({ error: err });
   }

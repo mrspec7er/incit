@@ -67,7 +67,7 @@ export async function oauthCallback(code: string, provider: string) {
     },
   });
 
-  return user;
+  return { user: user, token: accessToken };
 }
 
 export const registerUser = async (email: string, password: string) => {
@@ -124,7 +124,7 @@ export function validatePassword(password: string): boolean {
 }
 
 export const loginUser = async (email: string, password: string) => {
-  const user = await prisma.user.findFirst({
+  let user = await prisma.user.findFirst({
     where: {
       email: email,
     },
@@ -142,8 +142,30 @@ export const loginUser = async (email: string, password: string) => {
     };
   }
 
+  user = await prisma.user.update({
+    where: { email: user.email },
+    data: {
+      loginCount: {
+        increment: 1,
+      },
+    },
+  });
+
   const token = jwt.sign({ userId: user.id }, "token_secret", {
     expiresIn: "1h",
   });
   return { user, token };
+};
+
+export const logoutUser = async (email: string) => {
+  const user = await prisma.user.update({
+    where: {
+      email: email,
+    },
+    data: {
+      lastLogoutTime: new Date(),
+    },
+  });
+
+  return user;
 };
