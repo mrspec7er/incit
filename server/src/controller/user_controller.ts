@@ -108,3 +108,14 @@ export const logout = async (req: Request, res: Response) => {
     res.status(500).json({ error: err });
   }
 };
+
+export const statistic = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.user;
+    const statistics = await service.userStatistic(email);
+
+    res.status(200).json(statistics);
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+};

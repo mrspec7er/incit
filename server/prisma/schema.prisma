@@ -21,6 +21,7 @@ model User {
   verificationToken String?
   verifiedEmail     Boolean @default(false)
   signUpTime        DateTime @default(now())
+  lastLoginTime    DateTime?
   lastLogoutTime    DateTime?
   loginCount        Int      @default(0)
   createdAt         DateTime @default(now())

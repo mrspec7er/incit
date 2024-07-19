@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import * as mailService from "./mail_service";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { startOfDay, endOfDay, subDays } from "date-fns";
 
 const prisma = new PrismaClient();
 
@@ -36,6 +37,16 @@ export async function getAllUsers() {
   return users;
 }
 
+export async function getUserByEmail(email: string) {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: email,
+    },
+  });
+
+  return user;
+}
+
 export async function oauthCallback(code: string, provider: string) {
   const options = {
     code,
@@ -64,6 +75,7 @@ export async function oauthCallback(code: string, provider: string) {
       loginCount: {
         increment: 1,
       },
+      lastLoginTime: new Date(),
     },
   });
 
@@ -148,10 +160,11 @@ export const loginUser = async (email: string, password: string) => {
       loginCount: {
         increment: 1,
       },
+      lastLoginTime: new Date(),
     },
   });
 
-  const token = jwt.sign({ userId: user.id }, "token_secret", {
+  const token = jwt.sign({ email: user.email }, "token_secret", {
     expiresIn: "1h",
   });
   return { user, token };
@@ -168,4 +181,65 @@ export const logoutUser = async (email: string) => {
   });
 
   return user;
+};
+
+export const userStatistic = async (email: string) => {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: email,
+    },
+  });
+
+  const statisticsData = {
+    user,
+    totalUser: await userTotalStatistic(),
+    activeUser: await userActiveStatistic(),
+    averageActiveUser: await averageUserActiveStatistic(),
+  };
+
+  return statisticsData;
+};
+
+export const userTotalStatistic = async () => {
+  const allUsers = await prisma.user.findMany();
+
+  const userCount = allUsers.length;
+
+  return userCount;
+};
+
+export const userActiveStatistic = async () => {
+  const today = new Date();
+
+  const startOfToday = startOfDay(today);
+  const endOfToday = endOfDay(today);
+
+  const activeUser = await prisma.user.findMany({
+    where: {
+      lastLoginTime: {
+        gte: startOfToday,
+        lte: endOfToday,
+      },
+    },
+  });
+
+  return activeUser.length;
+};
+
+export const averageUserActiveStatistic = async () => {
+  const today = new Date();
+
+  const startOfDay = subDays(today, 7);
+  const endOfToday = endOfDay(today);
+
+  const activeUser = await prisma.user.findMany({
+    where: {
+      lastLoginTime: {
+        gte: startOfDay,
+        lte: endOfToday,
+      },
+    },
+  });
+
+  return Math.floor(activeUser.length / 7);
 };
