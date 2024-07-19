@@ -63,8 +63,8 @@ export const registerUsers = async (req: Request, res: Response) => {
       return;
     }
 
-    const users = await service.registerUser(email, password);
-    res.status(200).json(users);
+    const verifyToken = await service.registerUser(email, password);
+    res.status(200).json(verifyToken);
   } catch (err) {
     res.status(500).json({ error: err });
   }
@@ -74,7 +74,7 @@ export const verifyUsers = async (req: Request, res: Response) => {
   try {
     const { token } = req.query;
     const users = await service.verifyUser(token as string);
-    res.status(200).json(users);
+    res.status(200).json({ message: `verify user with email: ${users.email}` });
   } catch (err) {
     res.status(500).json({ error: err });
   }

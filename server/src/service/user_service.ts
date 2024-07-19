@@ -94,9 +94,10 @@ export const registerUser = async (email: string, password: string) => {
     },
   });
 
-  mailService.sendVerificationEmail(email, verificationToken);
+  // TODO: should be enable when we have SMTP account to send email
+  // mailService.sendVerificationEmail(email, verificationToken);
 
-  return user;
+  return verificationToken;
 };
 
 export const verifyUser = async (token: string) => {
