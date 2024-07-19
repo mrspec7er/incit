@@ -74,3 +74,13 @@ export const verifyUsers = async (req: Request, res: Response) => {
     res.status(500).json({ error: err });
   }
 };
+
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    const users = await service.loginUser(email, password);
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+};

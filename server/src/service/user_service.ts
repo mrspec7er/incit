@@ -1,13 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-import {
-  ClientCredentials,
-  ResourceOwnerPassword,
-  AuthorizationCode,
-} from "simple-oauth2";
+import { AuthorizationCode } from "simple-oauth2";
 import { UserInfo } from "../dto/user_dto";
 import bcrypt from "bcryptjs";
 import * as mailService from "./mail_service";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
@@ -125,3 +122,28 @@ export function validatePassword(password: string): boolean {
     hasLowercase && hasUppercase && hasDigit && hasSpecialChar && hasMinLength
   );
 }
+
+export const loginUser = async (email: string, password: string) => {
+  const user = await prisma.user.findFirst({
+    where: {
+      email: email,
+    },
+  });
+
+  if (!user) {
+    return {
+      error: "Invalid email",
+    };
+  }
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return {
+      error: "Invalid password",
+    };
+  }
+
+  const token = jwt.sign({ userId: user.id }, "token_secret", {
+    expiresIn: "1h",
+  });
+  return { user, token };
+};
