@@ -11,6 +11,6 @@ router.post("/register", controller.registerUsers);
 router.get("/verify", controller.verifyUsers);
 router.post("/login", controller.login);
 router.post("/logout", controller.logout);
-router.post("/statistics", authMiddleware, controller.statistic);
+router.get("/statistics", authMiddleware, controller.statistic);
 
 export default router;

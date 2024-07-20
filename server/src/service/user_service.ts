@@ -23,7 +23,7 @@ const client = new AuthorizationCode({
 
 export async function getAuthorizationURI(provider: string) {
   const authorizationUri = client.authorizeURL({
-    redirect_uri: `http://localhost:8080/users/callback?provider=${provider}`,
+    redirect_uri: `${process.env.BASE_URL}/users/callback?provider=${provider}`,
     scope: ["openid", "profile", "email"],
     state: "random_state_string",
   });
@@ -50,7 +50,7 @@ export async function getUserByEmail(email: string) {
 export async function oauthCallback(code: string, provider: string) {
   const options = {
     code,
-    redirect_uri: `http://localhost:8080/users/callback?provider=${provider}`,
+    redirect_uri: `${process.env.BASE_URL}/users/callback?provider=${provider}`,
   };
 
   const accessToken = await client.getToken(options);
@@ -58,6 +58,14 @@ export async function oauthCallback(code: string, provider: string) {
   var userData: UserInfo;
 
   if (provider == "Google") {
+    userData = await fetch("https://www.googleapis.com/oauth2/v1/userinfo", {
+      headers: {
+        Authorization: `Bearer ${accessToken.token.access_token}`,
+      },
+    }).then((res) => res.json());
+  }
+
+  if (provider == "Facebook") {
     userData = await fetch("https://www.googleapis.com/oauth2/v1/userinfo", {
       headers: {
         Authorization: `Bearer ${accessToken.token.access_token}`,

@@ -47,7 +47,8 @@ export const oauthCallback = async (req: Request, res: Response) => {
       token: userData.token,
     });
 
-    res.status(200).json(userData.user);
+    //res.status(200).json(userData.user);
+    res.redirect(process.env.DOMAIN_URL + "/dashboard");
   } catch (err) {
     res.status(500).json({ error: err });
   }
