@@ -14,18 +14,27 @@ const Login = () => {
   }
 
   async function emailLogin() {
-    const loginURL = await fetch(
-      `${import.meta.env.VITE_BASE_URL}/users/login`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      }
-    ).then((res) => res.json());
-
-    console.log(loginURL);
+    await fetch(`${import.meta.env.VITE_BASE_URL}/users/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    })
+      .then((res) => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error("Invalid email or password");
+          return;
+        }
+        return res.json();
+      })
+      .then(() => {
+        window.location.href = "/dashboard";
+      })
+      .catch((err) => {
+        window.alert(err.message);
+      });
   }
 
   const [email, setEmail] = useState("");
