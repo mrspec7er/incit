@@ -11,8 +11,8 @@ const prisma = new PrismaClient();
 
 const client = new AuthorizationCode({
   client: {
-    id: "507725183561-lnp17h8g0s7emj09efl0oalrnirlcsl1.apps.googleusercontent.com",
-    secret: "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",
+    id: process.env.GOOGLE_CLIENT_ID,
+    secret: process.env.GOOGLE_CLIENT_SECRET,
   },
   auth: {
     tokenHost: "https://accounts.google.com",
